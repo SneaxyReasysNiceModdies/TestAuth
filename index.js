@@ -19,9 +19,9 @@ app.get('/', async (req, res) => {
         const [accessToken, refreshToken] = await getAccessTokenAndRefreshToken(code);
         console.log('Access Token:', accessToken);
         console.log('Refresh Token:', refreshToken);
-        const hashAndTokenArray = await getUserHashAndToken(accessToken);
-        const userToken = hashAndTokenArray[0];
-        const userHash = hashAndTokenArray[1];
+        const [userToken, userHash] = await getUserHashAndToken(accessToken); // Added line
+        console.log('User Token:', userToken); // Added line
+        console.log('User Hash:', userHash); // Added line
         const xstsToken = await getXSTSToken(userToken);
         const bearerToken = await getBearerToken(xstsToken, userHash);
         const usernameAndUUIDArray = await getUsernameAndUUID(bearerToken);
