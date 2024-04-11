@@ -165,5 +165,3 @@ function checkIfBanned(name) {
     addBan(name)
     return false
 }
-    return false
-}
