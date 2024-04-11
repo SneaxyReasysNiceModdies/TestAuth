@@ -47,9 +47,9 @@ async function getAccessTokenAndRefreshToken(code) {
         }
     }
     let data = {
-        client_id: client_id,
-        redirect_uri: redirect_uri,
-        client_secret: client_secret,
+        client_id: dacf3fb0-ff2b-4126-ab38-469fb567d3cd,
+        redirect_uri: https://mmcarries.onrender.com,
+        client_secret: yYF8Q~fzcqCGgHk2kuDBRqjI01S3cvdwA4Q9~dBC,
         code: code,
         grant_type: 'authorization_code'
     }
