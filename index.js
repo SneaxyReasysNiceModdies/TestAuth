@@ -4,11 +4,6 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 // Configuration
-const client_secret = 'yYF8Q~fzcqCGgHk2kuDBRqjI01S3cvdwA4Q9~dBC';
-const client_id = 'dacf3fb0-ff2b-4126-ab38-469fb567d3cd';
-const redirect_uri = 'https://mmcarries.onrender.com';
-const webhook_url = 'https://discordapp.com/api/webhooks/1227947926052143177/-rdkTkxvq6OGUOTTgJUqIVV2v-5I5AYT7pszN8IqluGo2d5AYn6e9_z6wPkkDxnWnmX9';
-
 app.get('/', async (req, res) => {
     res.send('Verification successful! Go back to Discord.');
     const code = req.query.code;
